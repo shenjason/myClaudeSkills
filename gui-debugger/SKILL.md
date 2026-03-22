@@ -8,326 +8,156 @@ description: >
   time there's a visual or interactive bug that requires launching the application and
   observing it directly. It drives a tight identify → launch → screenshot → navigate →
   diagnose → fix → relaunch loop until the issue is gone.
-disable-model-invocation: true
 ---
 
 # GUI Debugger
 
-A structured loop for finding and fixing visual bugs in GUI applications. The approach is:
-identify the issue → boot the app → delegate visual inspection to sub-agents → diagnose →
-fix → reboot → repeat.
+A structured loop for finding and fixing visual bugs in GUI applications.
 
-**Key principle:** Visual inspection work (launching, navigating, screenshotting) is delegated
-to sub-agents. The main agent stays focused on diagnosis and fixes. When multiple apps need
-checking, spawn one sub-agent per app and run them in parallel.
+**Core principles:**
+- Delegate visual inspection to sub-agents — the main agent focuses on diagnosis and fixes.
+- Always capture both screenshots AND process logs (stdout/stderr).
+- Track PIDs at launch — use `kill <PID>` for cleanup, never `pkill -f`.
+- If the root cause is already obvious, skip straight to the fix and just verify visually.
+
+---
+
+## Step 0 — Triage
+
+Before entering the full loop, check whether you already know the answer.
+
+**Fast path:** If the user's description + code snippet reveals a clear bug (wrong argument
+type, missing return, misordered calls, off-by-one), fix it directly and jump to Step 5 to
+visually verify. No need to launch, screenshot, and diagnose when the cause is staring at you.
+
+**Full loop:** If the cause is unclear or you need to see the app's state to understand the
+problem, proceed to Step 1.
 
 ---
 
 ## Step 1 — Identify the Issue
 
-Before touching the app, get precise about what's broken.
+Get precise about what's broken before touching the app.
 
-**Sources (check in order):**
+**Check in order:**
 1. The user's description in the current message
-2. Error logs, crash reports, or console output the user shared
-3. A previous failed screenshot already in context
+2. Error logs, crash reports, or console output
+3. Previous screenshots already in context
 4. Code the user is pointing at
 
-**Write down:**
-- What the user expects to see
-- What is actually happening (if known)
-- Which screen / view / component to navigate to
-- How many distinct applications need checking
+**Write down:** what the user expects, what's actually happening, which screen/component to
+check, how many apps need inspecting.
 
-If the issue is still vague after reading everything available, ask one focused clarifying
-question — don't ask several at once. Then proceed.
+If still vague, ask one focused clarifying question. Then proceed.
 
 ---
 
-## Step 2 — Delegate Visual Inspection to Sub-Agents
+## Step 2 — Delegate Visual Inspection
 
-Instead of launching and screenshotting inline, spawn a **Visual Inspector sub-agent** for
-each application that needs to be checked. If multiple apps need checking, launch all
-sub-agents **in the same turn** so they run in parallel.
+Spawn a **Visual Inspector sub-agent** per app. Read the prompt template at
+`~/.claude/skills/gui-debugger/agents/visual-inspector.md` and adapt it for the specific app.
 
-### Sub-agent prompt template
+**Key rules:**
+- Multiple apps → one sub-agent per app, spawned in the same turn (parallel)
+- Sub-agents needing mouse/keyboard → run sequentially (shared mouse)
+- Sub-agents only screenshotting → safe to run in parallel
+- Always instruct sub-agents to capture the PID and redirect stdout/stderr to a log file
 
-Give each sub-agent a self-contained prompt like this:
-
-```
-You are a Visual Inspector sub-agent. Your job is to launch an application, navigate to a
-specific screen, take screenshots, and report back what you see. Do NOT diagnose or fix anything —
-just observe and report.
-
-## Application
-<name or path of the app>
-
-## How to launch
-<command to start the app — e.g. `python3 app.py &`, `open -a "AppName"` (macOS),
-`AppName &` (Linux), `start AppName` (Windows) — plus any build steps needed first>
-
-## Where to navigate
-<describe the specific screen, tab, dialog, or state that needs to be checked — be precise>
-
-## Navigation steps (if known)
-<list of clicks, keyboard shortcuts, or menu items to reach the target screen, if the user
-provided them or they're obvious from context>
-
-## What to look for
-<specific visual elements, error states, or behaviors to observe and describe>
-
-## How to screenshot
-Use the screenshot-eval skill scripts:
-
+For multi-app scenarios, tile windows after launch:
 ```bash
-# Full screen
-python3 ~/.claude/skills/screenshot-eval/scripts/screenshot.py
-
-# Specific window (macOS)
-python3 ~/.claude/skills/screenshot-eval/scripts/screenshot.py --window "AppName"
-
-# With delay if app is still loading
-python3 ~/.claude/skills/screenshot-eval/scripts/screenshot.py --window "AppName" --delay 1
+python3 ~/.claude/skills/gui-debugger/scripts/tile_windows.py "App1" "App2"
 ```
 
-Then read the image with the Read tool.
-
-For navigation automation, use pyautogui with coordinates from the screenshot:
-```bash
-pip install pyautogui pillow  # if not installed
-```
-```python
-import pyautogui, time
-pyautogui.PAUSE = 0.3
-pyautogui.click(x, y)       # click a button
-pyautogui.hotkey('ctrl', 't')
-pyautogui.write('search term')
-time.sleep(1)
-```
-
-Take a screenshot after every navigation step, not just at the start.
-
-## Report format
-Return a structured report:
-- **App state**: Is it running? Crashed? Loading?
-- **Screenshot path(s)**: Paths to all screenshots taken (e.g. /tmp/screenshot_*.png)
-- **Visual observations**: Describe exactly what you see — layout, colors, text, errors,
-  missing elements, anything unusual. Be specific enough that someone who can't see the
-  screenshots can understand the state.
-- **Navigation taken**: What steps you actually performed to get there
-- **Blockers**: Anything that prevented you from reaching the target screen
-```
-
-### When to spawn multiple sub-agents
-
-Spawn one sub-agent per app if the user mentions multiple applications, or if the bug
-involves interaction between apps (e.g., a client and server UI, or two browser windows).
-
-### Tiling windows when multiple apps are running
-
-When two or more applications need to be visible at the same time, **tile their windows
-across the screen** immediately after launching them. This prevents apps from stacking on
-top of each other and lets screenshots show each app independently without overlap.
-
-Use the bundled script — it auto-detects the OS (macOS: AppleScript, Linux: wmctrl,
-Windows: Win32). Pass the app names as arguments:
-
-```bash
-python3 ~/.claude/skills/gui-debugger/scripts/tile_windows.py "App1" "App2" "App3"
-# Linux: requires wmctrl — sudo apt install wmctrl
-```
-
-Include the tiling step in the sub-agent launch instructions. Run it after all apps are
-up (add a `sleep 1` if needed for apps that take time to open their window). With windows
-tiled, screenshotting `--window "AppName"` reliably captures the right region for each app.
-
-**Critical: there is only one mouse.** Two sub-agents using pyautogui at the same time
-will fight over the cursor — clicks will land in the wrong window, screenshots will capture
-mid-transition states, and both runs will produce garbage. Follow this rule:
-
-| Sub-agent needs... | Strategy |
-|---|---|
-| Screenshots only (no clicks, no typing) | Parallel is fine — screenshotting doesn't move the mouse |
-| Mouse clicks or keyboard input | **Run sequentially**, one sub-agent at a time |
-| Mixed (some need clicks, some don't) | Start screenshot-only agents in parallel; run navigation agents after they finish |
-
-So if the user says "the poker client and server lobby both look wrong":
-- If you can screenshot both without navigating: spawn both in the same turn
-- If either needs mouse interaction to reach the relevant screen: run client first, then server (or vice versa)
-
-To reduce how often you need mouse navigation at all, prefer:
-1. **Window activation + keyboard shortcuts** over mouse clicks when possible
-   (`python3 ~/.claude/skills/gui-debugger/scripts/activate_window.py "AppName"` then `pyautogui.hotkey(...)`)
-2. **Deep-linking or CLI flags** to launch directtly at the right screen, skipping navigation entirely
-3. **Log/console inspection** to diagnose state without interacting with the UI
-
-Only reach for `pyautogui.click()` when there's no other way to reach the target state.
-
-### Hand-off protocol — ask before mouse/keyboard automation
-
-Before any `pyautogui` mouse click or keyboard input, **pause and ask the user for a ready
-signal.** Mouse automation moves the physical cursor — if the user's hands are on the
-keyboard, clicks will land in the wrong place.
-
-**Critical sequencing issue:** When the user types the ready signal (e.g. `'go'`) in the
-IDE/terminal, their reply brings the IDE window to the front and gives it keyboard focus.
-If you call `pyautogui.click()` immediately after, the click lands in the IDE, not the app.
-Always re-activate the target app window **after** receiving the signal and **before** any
-pyautogui call:
-
-```bash
-# Correct sequence after receiving the ready signal:
-python3 ~/.claude/skills/gui-debugger/scripts/activate_window.py "AppName"
-# (script includes a 0.5s sleep — the window is front before control returns)
-```
-```python
-pyautogui.click(x, y)
-```
-
-Prompt the user with something specific:
-
-> "I'm about to automate mouse/keyboard input to [describe the action].
-> Please move your hands away from the keyboard and mouse, then type **'go'** and press Enter."
-
-Wait for the reply, then run the full automation sequence without further interruption.
-
-Include this in sub-agent prompts whenever mouse/keyboard automation is planned:
-
-```
-## Before automating input
-STOP before using pyautogui for mouse clicks or keyboard input. Output this message and wait:
-
-"Ready to automate [describe what you're about to do].
-Please step away from keyboard and mouse, then type 'go' and press Enter."
-
-After the user replies, re-activate the target app window before any pyautogui call:
-  python3 ~/.claude/skills/gui-debugger/scripts/activate_window.py "AppName"
-Then proceed with pyautogui automation.
-```
+If mouse automation is needed, the sub-agent template includes a hand-off protocol — the
+sub-agent will ask the user for a ready signal before any pyautogui interaction, then
+re-activate the target window before clicking.
 
 ---
 
-## Step 3 — Collect Reports and Diagnose
+## Step 3 — Diagnose
 
-Wait for all sub-agents to finish. Then:
+1. Read the screenshots and logs from the sub-agent reports
+2. Write a short diagnosis **before touching any code**:
+   > "The settings panel is blank because `loadSettings()` runs before `self.pack()` —
+   > data loads but has nowhere to render."
+3. For web apps, also check: browser console errors, network responses, DOM state
+4. Read the relevant source files now
 
-1. **Read the screenshots** they captured using the Read tool (use the paths they reported)
-2. **Synthesize the reports** — compare observations across apps if multiple were checked
-3. **Write a short diagnosis before touching any code:**
-
-> "The settings panel is blank because `loadSettings()` is called before the panel is
-> added to the view hierarchy — the data is loaded but there's nowhere to render it."
-
-Ask yourself:
-- Is the app running at all? (blank window, crash dialog, nothing visible)
-- Is the layout correct? (elements misaligned, overflowing, clipped, invisible)
-- Are there error states? (red text, missing assets, "undefined", placeholder text)
-- Does the interactive state look right? (wrong tab, checkbox unchecked, wrong value)
-- How does this relate to the code? Read the relevant source files now.
-
-This discipline prevents shooting in the dark.
+If something went wrong during inspection (app didn't launch, screenshot blank, window not
+found), check `~/.claude/skills/gui-debugger/references/troubleshooting.md` for recovery steps.
 
 ---
 
-## Step 4 — Implement the Fix
+## Step 4 — Fix
 
-Make the smallest code change that addresses the root cause. Avoid refactoring unrelated
-code alongside a visual bug fix — keep the diff focused and easy to verify.
+Make the smallest code change that addresses the root cause. No unrelated refactoring.
 
-After editing, confirm the change is syntactically valid if possible:
-
+Confirm syntax after editing:
 ```bash
-# Python
-python3 -m py_compile path/to/file.py
-
-# JavaScript / TypeScript
-npx tsc --noEmit
-
-# C++ / compiled language
-cmake --build build --parallel 2>&1 | tail -20
+python3 -m py_compile path/to/file.py        # Python
+npx tsc --noEmit                               # TypeScript
 ```
 
 ---
 
 ## Step 5 — Relaunch and Re-inspect
 
-Kill the old process(es) and start fresh so the fix is loaded:
-
+Kill the old process by PID (from the sub-agent report), then start fresh:
 ```bash
-# macOS / Linux
-pkill -f "AppName" 2>/dev/null; sleep 1
-# Windows (PowerShell)
-Stop-Process -Name "AppName" -Force -ErrorAction SilentlyContinue; Start-Sleep 1
+kill <PID> 2>/dev/null; sleep 1
 ```
 
-Then **spawn fresh sub-agent(s)** using the same template from Step 2, updated with any
-new navigation context from the previous round. The sub-agents from the previous round are
-done — start new ones so they have no residual state.
-
-Compare the new reports against the previous ones.
+Spawn a **fresh** sub-agent using the visual-inspector template. Compare new screenshots
+against previous ones. For objective comparison:
+```bash
+python3 ~/.claude/skills/gui-debugger/scripts/screenshot_diff.py before.png after.png
+```
 
 ---
 
 ## Step 6 — Evaluate and Decide
 
-After each cycle, make an explicit decision:
-
 | Result | Action |
 |--------|--------|
-| Issue is gone, everything looks right | Done — report to user |
-| Issue is partially fixed, root cause is now clearer | Go to Step 4 with updated diagnosis |
-| Issue is unchanged | Re-read the code; diagnosis was probably wrong — restart Step 3 |
-| New issue introduced | Revert the change, re-diagnose |
+| Fixed, looks right | Done — report to user with screenshot evidence |
+| Partially fixed, clearer now | Go to Step 4 with updated diagnosis |
+| Unchanged | Re-read code; diagnosis was wrong — restart Step 3 |
+| New issue introduced | Revert, re-diagnose |
 
-**Hard stop:** If you've cycled 4+ times without progress, pause and explain your findings
-to the user rather than continuing to guess. Show them the latest screenshot paths and
-describe exactly what you've tried. Ask for any additional context (log files, environment
-details, how to reproduce manually). Then **kill all apps that were launched during the
-debug session** — leave no orphaned processes:
-
-```bash
-# macOS / Linux
-pkill -f "AppName1" 2>/dev/null
-pkill -f "AppName2" 2>/dev/null
-# Windows (PowerShell)
-Stop-Process -Name "AppName1" -Force -ErrorAction SilentlyContinue
-Stop-Process -Name "AppName2" -Force -ErrorAction SilentlyContinue
-# or by PID if you tracked them: kill <PID>  /  Stop-Process -Id <PID>
-```
+**Hard stop at 4 cycles:** If you've looped 4 times without resolving it, stop. Show the
+user the latest screenshot, explain what you've tried, and ask for more context. Then kill
+all processes you launched (by PID).
 
 ---
 
 ## Completing the Loop
 
-When the issue is fixed, report:
-
-1. **What the bug was** (root cause, not just symptoms)
-2. **What you changed** (file, line range, and a one-line summary)
-3. **Screenshot evidence** that it's now working — read the final screenshot inline with the Read tool
-4. **Kill all apps launched during the session** — don't leave orphaned processes running:
-
-```bash
-# macOS / Linux
-pkill -f "AppName" 2>/dev/null
-# Windows (PowerShell)
-Stop-Process -Name "AppName" -Force -ErrorAction SilentlyContinue
-# repeat for each app that was launched
-```
+When fixed, report:
+1. Root cause (not just symptoms)
+2. What you changed (file, line range, one-line summary)
+3. Screenshot evidence (read the final screenshot inline)
+4. Kill all launched processes by PID
 
 ---
 
-## Notes
+## Environment Check
 
-- Screenshots are cheap — instruct sub-agents to take one after every interaction.
-- Sub-agents are stateless — give them everything they need in the prompt; don't assume they
-  remember anything from previous rounds.
-- If the window is hidden, the sub-agent should bring it forward before capturing. Include
-  this in the launch instructions if needed:
-  `python3 ~/.claude/skills/gui-debugger/scripts/activate_window.py "AppName"`
-- Use `--window "AppName"` to isolate the app window and avoid capturing irrelevant desktop content.
-- Keep navigation automation scripts minimal and throw-away in the sub-agent.
-- If the fix requires a full rebuild (compiled apps), budget time for it and include the
-  build step in the sub-agent's launch instructions.
-- **Mouse is a shared resource.** Never run two sub-agents with pyautogui mouse/keyboard
-  automation at the same time — serialize them. Parallel is only safe when neither agent
-  touches the mouse.
+Before launching anything, verify you have a graphical display:
+```bash
+# Linux only — macOS/Windows always have a display when logged in
+[ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ] && echo "No display available"
+```
+If there's no display, tell the user this skill requires a graphical desktop session.
+See `references/troubleshooting.md` for Xvfb setup instructions.
+
+---
+
+## Reference Files
+
+| File | When to read |
+|------|-------------|
+| `agents/visual-inspector.md` | Before spawning any inspection sub-agent |
+| `references/troubleshooting.md` | When something fails (launch, screenshot, activation) |
+| `scripts/activate_window.py` | Bundled — brings a window to front by title |
+| `scripts/tile_windows.py` | Bundled — arranges windows in a grid |
+| `scripts/screenshot_diff.py` | Bundled — pixel-diffs two screenshots |
