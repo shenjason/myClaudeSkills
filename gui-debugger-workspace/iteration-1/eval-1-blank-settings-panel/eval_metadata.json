@@ -1,0 +1,23 @@
+{
+  "eval_id": 1,
+  "eval_name": "blank-settings-panel",
+  "prompt": "I have a Python tkinter settings panel that's showing up completely blank — no labels, no inputs, nothing. The app launches fine and the main window works. Here's the code: it calls `load_settings()` inside `__init__` before `self.pack()` is ever called on the frame. Can you debug and fix it?",
+  "assertions": [
+    {
+      "name": "identifies_root_cause_before_fixing",
+      "description": "Agent writes a diagnosis of the root cause before editing any code"
+    },
+    {
+      "name": "uses_screenshot_skill",
+      "description": "Agent references or invokes the screenshot-eval skill to visually verify the bug and/or fix"
+    },
+    {
+      "name": "fix_is_minimal",
+      "description": "The fix targets only the pack() ordering issue, not a broader refactor"
+    },
+    {
+      "name": "relaunches_after_fix",
+      "description": "Agent relaunches the application after applying the fix to verify it worked"
+    }
+  ]
+}

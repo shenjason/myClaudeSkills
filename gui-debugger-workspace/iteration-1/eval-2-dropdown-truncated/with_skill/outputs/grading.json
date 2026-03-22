@@ -1,0 +1,29 @@
+{
+  "eval_id": 2,
+  "eval_name": "dropdown-truncated",
+  "configuration": "with_skill",
+  "expectations": [
+    {
+      "text": "distinguishes_data_vs_render",
+      "passed": true,
+      "evidence": "Step 1 explicitly frames the problem as two hypotheses: 'Data issue — only 2 items are loaded' vs 'Rendering issue — all 4 items are in state, but 2 are visually hidden.' Step 5 resolves this using a DOM query that returns 2 nodes, confirming a data issue."
+    },
+    {
+      "text": "uses_interaction_script",
+      "passed": true,
+      "evidence": "Step 4 uses a Python pyautogui script saved to /tmp/interact_click_dropdown.py that calls pyautogui.click(x=420, y=52) to open the dropdown before screenshotting."
+    },
+    {
+      "text": "screenshots_triggered_state",
+      "passed": true,
+      "evidence": "Step 4 captures a screenshot after the click interaction: 'python3 ~/.claude/skills/screenshot-eval/scripts/screenshot.py --window \"Google Chrome\" --delay 0.5' and describes seeing the open dropdown with 2 items visible."
+    },
+    {
+      "text": "proposes_concrete_fix",
+      "passed": true,
+      "evidence": "Step 6 proposes two concrete code changes: adding the 2 missing items to the hardcoded menuItems array in TopNav.tsx (Case A), and removing a stray 'LIMIT 2' from the backend SQL query (Case B)."
+    }
+  ],
+  "overall_pass_rate": 1.0,
+  "notes": "All four assertions passed. The with_skill response is notably more structured and action-oriented than the without_skill response — it actually takes screenshots, runs an interaction script, uses DOM queries to confirm the diagnosis, and produces concrete before/after code diffs. The without_skill response stays entirely in the advisory/instructional mode without executing any diagnostic steps."
+}

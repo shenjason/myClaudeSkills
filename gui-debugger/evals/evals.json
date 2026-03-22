@@ -1,0 +1,74 @@
+{
+  "skill_name": "gui-debugger",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a Python tkinter settings panel that's showing up completely blank — no labels, no inputs, nothing. The app launches fine and the main window works. Here's the code: it calls `load_settings()` inside `__init__` before `self.pack()` is ever called on the frame. Can you debug and fix it?",
+      "expected_output": "Agent should: (1) identify the root cause from the description (pack() order issue), (2) describe a plan to launch the app, screenshot it, and verify the blank panel, (3) implement a fix moving self.pack() before load_settings(), (4) relaunch and screenshot again to confirm the fix.",
+      "assertions": [
+        {
+          "name": "identifies_root_cause_before_fixing",
+          "description": "Agent writes a diagnosis of the root cause before editing any code"
+        },
+        {
+          "name": "uses_screenshot_skill",
+          "description": "Agent references or invokes the screenshot-eval skill to visually verify the bug and/or fix"
+        },
+        {
+          "name": "fix_is_minimal",
+          "description": "The fix targets only the pack() ordering issue, not a broader refactor"
+        },
+        {
+          "name": "relaunches_after_fix",
+          "description": "Agent relaunches the application after applying the fix to verify it worked"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "My Electron app has a dropdown menu in the top nav that should show 4 options when clicked, but it's only showing 2. I need to figure out if this is a data issue (the options aren't loaded) or a rendering issue (they're loaded but not visible). The app is running at localhost:3000. Can you help me debug this?",
+      "expected_output": "Agent should: (1) clarify whether to screenshot a browser or the Electron window, (2) launch/navigate to the app, (3) use a Python script (pyautogui or similar) to click the dropdown to trigger it, (4) screenshot to see the actual state, (5) inspect the relevant component code to distinguish data vs render issue, (6) apply fix and verify.",
+      "assertions": [
+        {
+          "name": "distinguishes_data_vs_render",
+          "description": "Agent explicitly investigates whether the issue is a data problem or a rendering problem"
+        },
+        {
+          "name": "uses_interaction_script",
+          "description": "Agent uses a Python automation script or browser interaction to open the dropdown before screenshotting"
+        },
+        {
+          "name": "screenshots_triggered_state",
+          "description": "Agent captures a screenshot with the dropdown in its open/triggered state to see what's actually rendered"
+        },
+        {
+          "name": "proposes_concrete_fix",
+          "description": "Agent proposes a specific code change (not just 'investigate further')"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The dark mode toggle in my PyQt5 app doesn't do anything when I click it. The checkbox visually toggles but the window background stays white. I've been staring at the stylesheet code for an hour and can't figure it out. Here's the relevant method:\n\n```python\ndef toggle_dark_mode(self, checked):\n    if checked:\n        self.setStyleSheet('QWidget { background-color: #1e1e1e; color: #ffffff; }')\n```\n\nThe checkbox is connected via `checkbox.stateChanged.connect(self.toggle_dark_mode)`. What's wrong?",
+      "expected_output": "Agent should: (1) identify that stateChanged passes an int (0/2) not a bool, so `checked` is always truthy when non-zero but the light-mode branch is missing, OR identify a parent widget scoping issue, (2) screenshot the app to confirm the symptom, (3) implement the fix, (4) relaunch and screenshot to verify dark mode activates.",
+      "assertions": [
+        {
+          "name": "identifies_statechanged_int_issue_or_scoping",
+          "description": "Agent correctly identifies either the stateChanged int vs bool issue or a widget scoping problem as the root cause"
+        },
+        {
+          "name": "uses_screenshot_to_verify_symptom",
+          "description": "Agent takes a screenshot to confirm the visual symptom (white background persisting)"
+        },
+        {
+          "name": "fix_addresses_both_on_and_off_states",
+          "description": "The fix handles both the checked and unchecked states of the toggle"
+        },
+        {
+          "name": "confirms_fix_visually",
+          "description": "Agent takes a screenshot after the fix to show dark mode is now applying"
+        }
+      ]
+    }
+  ]
+}

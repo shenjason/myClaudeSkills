@@ -1,0 +1,23 @@
+{
+  "eval_id": 2,
+  "eval_name": "dropdown-truncated",
+  "prompt": "My Electron app has a dropdown menu in the top nav that should show 4 options when clicked, but it's only showing 2. I need to figure out if this is a data issue (the options aren't loaded) or a rendering issue (they're loaded but not visible). The app is running at localhost:3000. Can you help me debug this?",
+  "assertions": [
+    {
+      "name": "distinguishes_data_vs_render",
+      "description": "Agent explicitly investigates whether the issue is a data problem or a rendering problem"
+    },
+    {
+      "name": "uses_interaction_script",
+      "description": "Agent uses a Python automation script or browser interaction to open the dropdown before screenshotting"
+    },
+    {
+      "name": "screenshots_triggered_state",
+      "description": "Agent captures a screenshot with the dropdown in its open/triggered state to see what's actually rendered"
+    },
+    {
+      "name": "proposes_concrete_fix",
+      "description": "Agent proposes a specific code change (not just 'investigate further')"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "eval_id": 2,
+  "eval_name": "dropdown-truncated",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "distinguishes_data_vs_render",
+      "passed": true,
+      "evidence": "Step 1 and its table explicitly frame the distinction: 'Data issue \u2014 The component only receives or holds 2 items' vs 'Render issue \u2014 Component has 4 items but only shows 2.' Steps 2-4 walk through how to determine which applies."
+    },
+    {
+      "text": "uses_interaction_script",
+      "passed": false,
+      "evidence": "The response only describes opening DevTools manually and using the browser Elements panel \u2014 no Python automation script or programmatic interaction with the UI is used or mentioned."
+    },
+    {
+      "text": "screenshots_triggered_state",
+      "passed": false,
+      "evidence": "The response contains no screenshot commands or references to the screenshot skill. All diagnostic steps are described as manual DevTools inspection rather than automated visual capture."
+    },
+    {
+      "text": "proposes_concrete_fix",
+      "passed": true,
+      "evidence": "The 'Proposed Fix' section lists three concrete fixes: increase CSS max-height/overflow, remove an accidental .slice(0, 2) or maxItems=2 prop, and fix API/state management. Code snippets are shown for the CSS and conditional rendering cases."
+    }
+  ],
+  "overall_pass_rate": 0.5,
+  "notes": "The without_skill response provides good conceptual analysis and covers the data-vs-render distinction well, but it stays entirely advisory \u2014 it does not invoke any screenshot tool or write any interaction script. The two action-oriented assertions (uses_interaction_script, screenshots_triggered_state) both fail.",
+  "summary": {
+    "pass_rate": 0.5,
+    "passed": 2,
+    "failed": 2,
+    "total": 4
+  }
+}

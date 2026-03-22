@@ -1,0 +1,35 @@
+{
+  "eval_id": 1,
+  "eval_name": "blank-settings-panel",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "identifies_root_cause_before_fixing",
+      "passed": true,
+      "evidence": "The response opens with a 'Diagnosis' section followed by a 'Root Cause' section, both appearing before the 'Fix' code block. The root cause (self.pack() called before child widgets are created, collapsing the frame to zero size) is clearly stated prior to any code change."
+    },
+    {
+      "text": "uses_screenshot_skill",
+      "passed": false,
+      "evidence": "The response never mentions taking a screenshot, invoking screenshot-eval, or any visual capture tool. Verification is described only via winfo_geometry() and winfo_children() print statements."
+    },
+    {
+      "text": "fix_is_minimal",
+      "passed": true,
+      "evidence": "The fix is a two-line reordering: move self.pack() to after load_settings() in __init__. No other methods, widgets, or logic are touched."
+    },
+    {
+      "text": "relaunches_after_fix",
+      "passed": false,
+      "evidence": "The 'Verification' section describes inspecting widget geometry via winfo_geometry() but never instructs relaunching the application to visually confirm the fix works."
+    }
+  ],
+  "overall_pass_rate": 0.5,
+  "notes": "The response correctly diagnoses and minimally fixes the pack() ordering bug in the right order (diagnosis before fix). However, it fails both skill-related assertions: it never invokes the screenshot-eval skill for visual verification, and it does not describe relaunching the app after applying the fix. These two gaps are the primary behaviors a gui-debugger skill would be expected to enforce.",
+  "summary": {
+    "pass_rate": 0.5,
+    "passed": 2,
+    "failed": 2,
+    "total": 4
+  }
+}

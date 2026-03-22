@@ -1,0 +1,35 @@
+{
+  "eval_id": 3,
+  "eval_name": "dark-mode-toggle",
+  "configuration": "without_skill",
+  "expectations": [
+    {
+      "text": "identifies_statechanged_int_issue_or_scoping",
+      "passed": true,
+      "evidence": "Bug 1 explicitly identifies the signal/slot int issue ('QCheckBox.stateChanged emits an int, not a bool' with values 0/1/2), and Bug 3 identifies the scoping issue ('the connection may have been called on a different instance than the one being displayed, so the stylesheet is applied to an invisible widget')."
+    },
+    {
+      "text": "uses_screenshot_to_verify_symptom",
+      "passed": false,
+      "evidence": "The response contains no screenshot commands or references to a screenshot skill. All verification steps are described as print-statement debugging and manual inspection, not visual capture."
+    },
+    {
+      "text": "fix_addresses_both_on_and_off_states",
+      "passed": true,
+      "evidence": "The fix includes an else branch: 'else: self.setStyleSheet(\\'\\')  # Reset to default / light mode' and the alternative using toggled also includes an else branch, covering both checked and unchecked states."
+    },
+    {
+      "text": "confirms_fix_visually",
+      "passed": false,
+      "evidence": "The verification section in step 5 relies entirely on print statements and console debugging ('Add a print(...) at the top of the slot'), with no screenshot taken after the fix to confirm dark mode is visually applying."
+    }
+  ],
+  "overall_pass_rate": 0.5,
+  "notes": "The without_skill response correctly identifies the technical root causes and provides a complete fix with both states handled, but it never takes any screenshots \u2014 neither to confirm the bug nor to verify the fix. The two visual verification assertions both fail as a result.",
+  "summary": {
+    "pass_rate": 0.5,
+    "passed": 2,
+    "failed": 2,
+    "total": 4
+  }
+}

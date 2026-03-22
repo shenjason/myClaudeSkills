@@ -1,0 +1,293 @@
+{
+  "metadata": {
+    "skill_name": "gui-debugger",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-03-22T07:02:24Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 72.1,
+        "tokens": 14792,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "identifies_root_cause_before_fixing",
+          "passed": true,
+          "evidence": "Step 5 (Diagnose) appears before Step 6 (Implement the Fix) and explicitly states: 'load_settings() is being called before super().__init__(master). Since the Frame base class hasn't been initialized yet, self is not a valid tkinter widget.'"
+        },
+        {
+          "text": "uses_screenshot_skill",
+          "passed": true,
+          "evidence": "The response invokes the screenshot skill twice: 'python3 ~/.claude/skills/screenshot-eval/scripts/screenshot.py --window \"Settings\"' in Step 3 and again in Step 7 after the fix."
+        },
+        {
+          "text": "fix_is_minimal",
+          "passed": true,
+          "evidence": "The fix is described as 'One line reordered, minimal diff' \u2014 only the order of super().__init__(master) and self.load_settings() is swapped, with no broader refactoring."
+        },
+        {
+          "text": "relaunches_after_fix",
+          "passed": true,
+          "evidence": "Step 7 explicitly kills the app and relaunches: 'pkill -f \"app.py\" 2>/dev/null; sleep 1 / python3 app.py &' followed by a re-screenshot."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 81.4,
+        "tokens": 15778,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "distinguishes_data_vs_render",
+          "passed": true,
+          "evidence": "Step 1 explicitly frames the problem as two hypotheses: 'Data issue \u2014 only 2 items are loaded' vs 'Rendering issue \u2014 all 4 items are in state, but 2 are visually hidden.' Step 5 resolves this using a DOM query that returns 2 nodes, confirming a data issue."
+        },
+        {
+          "text": "uses_interaction_script",
+          "passed": true,
+          "evidence": "Step 4 uses a Python pyautogui script saved to /tmp/interact_click_dropdown.py that calls pyautogui.click(x=420, y=52) to open the dropdown before screenshotting."
+        },
+        {
+          "text": "screenshots_triggered_state",
+          "passed": true,
+          "evidence": "Step 4 captures a screenshot after the click interaction: 'python3 ~/.claude/skills/screenshot-eval/scripts/screenshot.py --window \"Google Chrome\" --delay 0.5' and describes seeing the open dropdown with 2 items visible."
+        },
+        {
+          "text": "proposes_concrete_fix",
+          "passed": true,
+          "evidence": "Step 6 proposes two concrete code changes: adding the 2 missing items to the hardcoded menuItems array in TopNav.tsx (Case A), and removing a stray 'LIMIT 2' from the backend SQL query (Case B)."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 73.0,
+        "tokens": 14846,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "identifies_statechanged_int_issue_or_scoping",
+          "passed": true,
+          "evidence": "Step 5 identifies both the scoping issue ('self.setStyleSheet(...) targets the wrong object \u2014 if self is a child widget rather than the top-level QMainWindow, the stylesheet is applied to the child's subtree') and the int vs bool issue (notes 'stateChanged passes a Qt::CheckState int: 0 = Unchecked, 2 = Checked' and recommends 'if checked == 2')."
+        },
+        {
+          "text": "uses_screenshot_to_verify_symptom",
+          "passed": true,
+          "evidence": "Step 3 captures a baseline screenshot with 'python3 ~/.claude/skills/screenshot-eval/scripts/screenshot.py --window \"MyApp\" --delay 1' and Step 4 takes a second screenshot after clicking the checkbox to confirm the bug (white background persisting with checked checkbox)."
+        },
+        {
+          "text": "fix_addresses_both_on_and_off_states",
+          "passed": true,
+          "evidence": "The fix in Step 6 includes an else branch: 'else: app.setStyleSheet(\\'\\')  # restore system default' and the alternative using self.window() also includes the else branch, handling both checked and unchecked states."
+        },
+        {
+          "text": "confirms_fix_visually",
+          "passed": true,
+          "evidence": "Step 7 relaunches the app and takes three screenshots: baseline (white/unchecked), after check (expected: dark background), and after uncheck (expected: white restored), directly confirming the fix visually."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 89.2,
+        "tokens": 14789,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "identifies_root_cause_before_fixing",
+          "passed": true,
+          "evidence": "The response opens with a 'Diagnosis' section followed by a 'Root Cause' section, both appearing before the 'Fix' code block. The root cause (self.pack() called before child widgets are created, collapsing the frame to zero size) is clearly stated prior to any code change."
+        },
+        {
+          "text": "uses_screenshot_skill",
+          "passed": false,
+          "evidence": "The response never mentions taking a screenshot, invoking screenshot-eval, or any visual capture tool. Verification is described only via winfo_geometry() and winfo_children() print statements."
+        },
+        {
+          "text": "fix_is_minimal",
+          "passed": true,
+          "evidence": "The fix is a two-line reordering: move self.pack() to after load_settings() in __init__. No other methods, widgets, or logic are touched."
+        },
+        {
+          "text": "relaunches_after_fix",
+          "passed": false,
+          "evidence": "The 'Verification' section describes inspecting widget geometry via winfo_geometry() but never instructs relaunching the application to visually confirm the fix works."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 66.1,
+        "tokens": 13234,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "distinguishes_data_vs_render",
+          "passed": true,
+          "evidence": "Step 1 and its table explicitly frame the distinction: 'Data issue \u2014 The component only receives or holds 2 items' vs 'Render issue \u2014 Component has 4 items but only shows 2.' Steps 2-4 walk through how to determine which applies."
+        },
+        {
+          "text": "uses_interaction_script",
+          "passed": false,
+          "evidence": "The response only describes opening DevTools manually and using the browser Elements panel \u2014 no Python automation script or programmatic interaction with the UI is used or mentioned."
+        },
+        {
+          "text": "screenshots_triggered_state",
+          "passed": false,
+          "evidence": "The response contains no screenshot commands or references to the screenshot skill. All diagnostic steps are described as manual DevTools inspection rather than automated visual capture."
+        },
+        {
+          "text": "proposes_concrete_fix",
+          "passed": true,
+          "evidence": "The 'Proposed Fix' section lists three concrete fixes: increase CSS max-height/overflow, remove an accidental .slice(0, 2) or maxItems=2 prop, and fix API/state management. Code snippets are shown for the CSS and conditional rendering cases."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 52.8,
+        "tokens": 12501,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "identifies_statechanged_int_issue_or_scoping",
+          "passed": true,
+          "evidence": "Bug 1 explicitly identifies the signal/slot int issue ('QCheckBox.stateChanged emits an int, not a bool' with values 0/1/2), and Bug 3 identifies the scoping issue ('the connection may have been called on a different instance than the one being displayed, so the stylesheet is applied to an invisible widget')."
+        },
+        {
+          "text": "uses_screenshot_to_verify_symptom",
+          "passed": false,
+          "evidence": "The response contains no screenshot commands or references to a screenshot skill. All verification steps are described as print-statement debugging and manual inspection, not visual capture."
+        },
+        {
+          "text": "fix_addresses_both_on_and_off_states",
+          "passed": true,
+          "evidence": "The fix includes an else branch: 'else: self.setStyleSheet(\\'\\')  # Reset to default / light mode' and the alternative using toggled also includes an else branch, covering both checked and unchecked states."
+        },
+        {
+          "text": "confirms_fix_visually",
+          "passed": false,
+          "evidence": "The verification section in step 5 relies entirely on print statements and console debugging ('Add a print(...) at the top of the slot'), with no screenshot taken after the fix to confirm dark mode is visually applying."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 75.5,
+        "stddev": 5.1293,
+        "min": 72.1,
+        "max": 81.4
+      },
+      "tokens": {
+        "mean": 15138.6667,
+        "stddev": 554.3368,
+        "min": 14792,
+        "max": 15778
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.5,
+        "stddev": 0.0,
+        "min": 0.5,
+        "max": 0.5
+      },
+      "time_seconds": {
+        "mean": 69.3667,
+        "stddev": 18.4186,
+        "min": 52.8,
+        "max": 89.2
+      },
+      "tokens": {
+        "mean": 13508.0,
+        "stddev": 1168.3505,
+        "min": 12501,
+        "max": 14789
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.50",
+      "time_seconds": "+6.1",
+      "tokens": "+1631"
+    }
+  },
+  "notes": []
+}
