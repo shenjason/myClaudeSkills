@@ -1,0 +1,29 @@
+{
+  "eval_id": 1,
+  "eval_name": "tkinter-check",
+  "variant": "without_skill",
+  "expectations": [
+    {
+      "text": "uses_screenshot_script: Agent executed screenshot.py via shell",
+      "passed": false,
+      "evidence": "Agent used 'screencapture -x' directly and PIL for cropping — did not use screenshot.py"
+    },
+    {
+      "text": "reads_image_file: Agent used the Read tool on a .png file",
+      "passed": true,
+      "evidence": "Agent used Read tool on screenshot.png and tkinter_crop.png"
+    },
+    {
+      "text": "produces_screenshot_file: A .png file exists in the outputs directory",
+      "passed": true,
+      "evidence": "7 .png files found in outputs directory"
+    },
+    {
+      "text": "provides_specific_evaluation: result.md contains specific visual observations",
+      "passed": true,
+      "evidence": "Provided detailed table with PASS/FAIL for each check, described traffic-light buttons and Hello World label"
+    }
+  ],
+  "pass_rate": 0.75,
+  "notes": "Good output quality but went ad-hoc (screencapture + PIL cropping, 26 tool uses). Did not use the bundled script."
+}

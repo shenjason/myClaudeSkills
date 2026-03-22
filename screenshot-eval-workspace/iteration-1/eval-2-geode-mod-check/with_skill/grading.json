@@ -1,0 +1,29 @@
+{
+  "eval_id": 2,
+  "eval_name": "geode-mod-check",
+  "variant": "with_skill",
+  "expectations": [
+    {
+      "text": "uses_screenshot_script: Agent executed screenshot.py via shell",
+      "passed": true,
+      "evidence": "Agent ran screenshot.py multiple times: once with --window 'Geometry Dash', then full-screen fallbacks"
+    },
+    {
+      "text": "reads_image_file: Agent used the Read tool on a .png file",
+      "passed": true,
+      "evidence": "Agent read all 4 screenshots: screenshot.png, screenshot_focused.png, screenshot_fullscreen.png, screenshot_steam.png"
+    },
+    {
+      "text": "window_targeting_attempted: Agent tried --window flag or activated a specific app window",
+      "passed": true,
+      "evidence": "Agent explicitly used --window 'Geometry Dash' flag as instructed by skill; also used pgrep to verify process"
+    },
+    {
+      "text": "structured_report: result.md contains status + specific findings + suggested next step",
+      "passed": true,
+      "evidence": "result.md has Status, Screenshots taken, Key findings, Mod visibility, and Suggested next step sections"
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "Took 4 screenshots, used pgrep to check running processes, gave clear structured report. 14 tool uses — appropriate for thorough investigation."
+}

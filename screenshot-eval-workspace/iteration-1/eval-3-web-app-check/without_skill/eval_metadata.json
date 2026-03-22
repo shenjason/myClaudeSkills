@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "web-app-check",
+  "prompt": "I opened Safari to test my web app at localhost:3000. The page should show a login form with username and password fields. Can you verify it looks right?",
+  "assertions": [
+    {"text": "uses_screenshot_script: Agent executed screenshot.py via shell", "passed": null, "evidence": ""},
+    {"text": "reads_image_file: Agent used the Read tool on a .png file", "passed": null, "evidence": ""},
+    {"text": "evaluates_specific_elements: Agent mentions login form, username, or password fields specifically", "passed": null, "evidence": ""},
+    {"text": "handles_missing_app_gracefully: Agent still evaluates what IS visible rather than refusing to work", "passed": null, "evidence": ""}
+  ]
+}

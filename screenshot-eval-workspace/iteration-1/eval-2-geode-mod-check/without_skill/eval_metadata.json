@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "geode-mod-check",
+  "prompt": "I've been building a geo-solver Geode mod. I just launched Geometry Dash with the mod installed. Can you take a screenshot to check if the mod is showing up correctly in the game?",
+  "assertions": [
+    {"text": "uses_screenshot_script: Agent executed screenshot.py via shell", "passed": null, "evidence": ""},
+    {"text": "reads_image_file: Agent used the Read tool on a .png file", "passed": null, "evidence": ""},
+    {"text": "window_targeting_attempted: Agent tried --window flag or activated a specific app window", "passed": null, "evidence": ""},
+    {"text": "structured_report: result.md contains status + specific findings + suggested next step", "passed": null, "evidence": ""}
+  ]
+}

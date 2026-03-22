@@ -1,0 +1,77 @@
+{
+  "skill_name": "screenshot-eval",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just launched a Python Tkinter app (run: python3 -c \"import tkinter as tk; r=tk.Tk(); r.title('Test App'); tk.Label(r,text='Hello World').pack(); r.mainloop()\" &) and I want to verify the window appeared correctly and the label is visible.",
+      "expected_output": "Agent uses screenshot script to capture the window, reads the image, and reports whether the Tkinter window is visible with 'Hello World' label.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses_screenshot_script",
+          "description": "Agent executed screenshot.py via shell (not some other screenshot method)"
+        },
+        {
+          "name": "reads_image_file",
+          "description": "Agent used the Read tool on a .png file produced by the script"
+        },
+        {
+          "name": "produces_screenshot_file",
+          "description": "A .png file exists in the outputs directory"
+        },
+        {
+          "name": "provides_specific_evaluation",
+          "description": "result.md contains specific visual observations about what was seen (not just 'I took a screenshot')"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I've been building a geo-solver Geode mod. I just launched Geometry Dash with the mod installed. Can you take a screenshot to check if the mod is showing up correctly in the game?",
+      "expected_output": "Agent uses screenshot script (ideally with --window 'Geometry Dash'), reads the resulting image, and evaluates whether the game and any mod UI is visible.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses_screenshot_script",
+          "description": "Agent executed screenshot.py via shell"
+        },
+        {
+          "name": "reads_image_file",
+          "description": "Agent used the Read tool on a .png file"
+        },
+        {
+          "name": "window_targeting_attempted",
+          "description": "Agent tried --window flag or activated a specific application window before capturing"
+        },
+        {
+          "name": "structured_report",
+          "description": "result.md contains status + specific findings + a suggested next step"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I opened Safari to test my web app at localhost:3000. The page should show a login form with username and password fields. Can you verify it looks right?",
+      "expected_output": "Agent captures a screenshot, reads it, and evaluates whether the login form is visible and correctly rendered.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "uses_screenshot_script",
+          "description": "Agent executed screenshot.py via shell"
+        },
+        {
+          "name": "reads_image_file",
+          "description": "Agent used the Read tool on a .png file"
+        },
+        {
+          "name": "evaluates_specific_elements",
+          "description": "Agent mentions login form, username, or password fields specifically in its evaluation"
+        },
+        {
+          "name": "handles_missing_app_gracefully",
+          "description": "When no app is at localhost:3000, agent still evaluates what IS visible rather than giving up"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "tkinter-check",
+  "prompt": "I just launched a Python Tkinter app (run: python3 -c \"import tkinter as tk; r=tk.Tk(); r.title('Test App'); tk.Label(r,text='Hello World').pack(); r.mainloop()\" &) and I want to verify the window appeared correctly and the label is visible.",
+  "assertions": [
+    {"text": "uses_screenshot_script: Agent executed screenshot.py via shell", "passed": null, "evidence": ""},
+    {"text": "reads_image_file: Agent used the Read tool on a .png file", "passed": null, "evidence": ""},
+    {"text": "produces_screenshot_file: A .png file exists in the outputs directory", "passed": null, "evidence": ""},
+    {"text": "provides_specific_evaluation: result.md contains specific visual observations", "passed": null, "evidence": ""}
+  ]
+}

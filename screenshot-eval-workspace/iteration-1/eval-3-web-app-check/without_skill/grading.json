@@ -1,0 +1,29 @@
+{
+  "eval_id": 3,
+  "eval_name": "web-app-check",
+  "variant": "without_skill",
+  "expectations": [
+    {
+      "text": "uses_screenshot_script: Agent executed screenshot.py via shell",
+      "passed": false,
+      "evidence": "Agent used raw screencapture command directly, not screenshot.py"
+    },
+    {
+      "text": "reads_image_file: Agent used the Read tool on a .png file",
+      "passed": true,
+      "evidence": "Agent read screenshot.png"
+    },
+    {
+      "text": "evaluates_specific_elements: Agent mentions login form, username, or password fields specifically",
+      "passed": true,
+      "evidence": "Agent stated 'No login form was visible anywhere on screen'"
+    },
+    {
+      "text": "handles_missing_app_gracefully: Agent still evaluates what IS visible rather than refusing to work",
+      "passed": true,
+      "evidence": "Agent curl'd localhost:3000, took screenshot, described what was on screen (Cursor editor + permissions dialog)"
+    }
+  ],
+  "pass_rate": 0.75,
+  "notes": "8 tool uses. Used curl first to verify server before screenshotting — smart but not standardized. Missing the bundled script."
+}

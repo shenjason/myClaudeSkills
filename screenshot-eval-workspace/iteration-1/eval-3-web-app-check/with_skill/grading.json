@@ -1,0 +1,29 @@
+{
+  "eval_id": 3,
+  "eval_name": "web-app-check",
+  "variant": "with_skill",
+  "expectations": [
+    {
+      "text": "uses_screenshot_script: Agent executed screenshot.py via shell",
+      "passed": true,
+      "evidence": "Agent ran screenshot.py to capture screenshot.png"
+    },
+    {
+      "text": "reads_image_file: Agent used the Read tool on a .png file",
+      "passed": true,
+      "evidence": "Agent read screenshot.png and evaluated its contents"
+    },
+    {
+      "text": "evaluates_specific_elements: Agent mentions login form, username, or password fields specifically",
+      "passed": true,
+      "evidence": "Agent stated 'no username field, password field, or any login form on screen'"
+    },
+    {
+      "text": "handles_missing_app_gracefully: Agent still evaluates what IS visible rather than refusing to work",
+      "passed": true,
+      "evidence": "Agent described the Safari tab visible (Hostinger page, video overlay) and gave actionable next steps"
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "7 tool uses — efficient. Followed the 4-step skill workflow cleanly. Correct structured report format with Status/What was seen/Issues/Next steps."
+}

@@ -1,0 +1,90 @@
+{
+  "skill_name": "screenshot-eval",
+  "iteration": 1,
+  "configurations": [
+    {
+      "name": "with_skill",
+      "evals": [
+        {
+          "eval_id": 1,
+          "eval_name": "tkinter-check",
+          "pass_rate": 1.0,
+          "duration_seconds": 277.1,
+          "total_tokens": 22598,
+          "tool_uses": 37
+        },
+        {
+          "eval_id": 2,
+          "eval_name": "geode-mod-check",
+          "pass_rate": 1.0,
+          "duration_seconds": 150.3,
+          "total_tokens": 15578,
+          "tool_uses": 14
+        },
+        {
+          "eval_id": 3,
+          "eval_name": "web-app-check",
+          "pass_rate": 1.0,
+          "duration_seconds": 91.0,
+          "total_tokens": 12636,
+          "tool_uses": 7
+        }
+      ],
+      "aggregate": {
+        "mean_pass_rate": 1.0,
+        "mean_duration_seconds": 172.8,
+        "mean_tokens": 16937,
+        "mean_tool_uses": 19.3
+      }
+    },
+    {
+      "name": "without_skill",
+      "evals": [
+        {
+          "eval_id": 1,
+          "eval_name": "tkinter-check",
+          "pass_rate": 0.75,
+          "duration_seconds": 167.1,
+          "total_tokens": 19763,
+          "tool_uses": 26
+        },
+        {
+          "eval_id": 2,
+          "eval_name": "geode-mod-check",
+          "pass_rate": 0.5,
+          "duration_seconds": 49.9,
+          "total_tokens": 13989,
+          "tool_uses": 7
+        },
+        {
+          "eval_id": 3,
+          "eval_name": "web-app-check",
+          "pass_rate": 0.75,
+          "duration_seconds": 53.1,
+          "total_tokens": 16663,
+          "tool_uses": 8
+        }
+      ],
+      "aggregate": {
+        "mean_pass_rate": 0.667,
+        "mean_duration_seconds": 90.0,
+        "mean_tokens": 16805,
+        "mean_tool_uses": 13.7
+      }
+    }
+  ],
+  "delta": {
+    "pass_rate": "+0.333 (+33pp)",
+    "duration_seconds": "+82.8s (skill takes longer — more thorough investigation)",
+    "tokens": "+132 (negligible)",
+    "tool_uses": "+5.6 (skill drives more systematic capture attempts)"
+  },
+  "analyst_notes": [
+    "uses_screenshot_script is the most discriminating assertion — with_skill passes 3/3, without_skill passes 0/3",
+    "reads_image_file and provides_specific_evaluation pass in almost all cases — not discriminating; agents figure these out regardless",
+    "window_targeting_attempted is a strong signal of skill quality — only with_skill attempted --window flag",
+    "The tkinter eval shows high variance in tool_uses (37 vs 26) due to a Python2 compatibility bug in screenshot.py that caused recovery overhead — fixed in iteration",
+    "without_skill Geode had the lowest pass rate (0.5) — no window targeting, no process verification",
+    "Token counts are nearly identical across variants — the skill doesn't inflate cost meaningfully"
+  ]
+}

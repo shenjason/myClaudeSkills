@@ -1,0 +1,29 @@
+{
+  "eval_id": 1,
+  "eval_name": "tkinter-check",
+  "variant": "with_skill",
+  "expectations": [
+    {
+      "text": "uses_screenshot_script: Agent executed screenshot.py via shell",
+      "passed": true,
+      "evidence": "Agent ran 'python3 ~/.claude/skills/screenshot-eval/scripts/screenshot.py --window Test App --out ...screenshot.png' (with python3 after initial python2 failure)"
+    },
+    {
+      "text": "reads_image_file: Agent used the Read tool on a .png file",
+      "passed": true,
+      "evidence": "Agent used Read tool on screenshot.png and later screenshot_wid.png"
+    },
+    {
+      "text": "produces_screenshot_file: A .png file exists in the outputs directory",
+      "passed": true,
+      "evidence": "9 .png files found in outputs directory"
+    },
+    {
+      "text": "provides_specific_evaluation: result.md contains specific visual observations",
+      "passed": true,
+      "evidence": "Described traffic-light buttons, 'Hello World' label, macOS styling; reported Status: Working correctly"
+    }
+  ],
+  "pass_rate": 1.0,
+  "notes": "Agent succeeded but took 37 tool uses due to: Python2 fallback error, permission issues with AppleScript window ID, window hidden behind fullscreen Claude. Fixed with python3 + Quartz window ID lookup."
+}

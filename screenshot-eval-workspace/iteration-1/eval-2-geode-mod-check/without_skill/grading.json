@@ -1,0 +1,29 @@
+{
+  "eval_id": 2,
+  "eval_name": "geode-mod-check",
+  "variant": "without_skill",
+  "expectations": [
+    {
+      "text": "uses_screenshot_script: Agent executed screenshot.py via shell",
+      "passed": false,
+      "evidence": "Agent used raw 'screencapture' command directly, not screenshot.py"
+    },
+    {
+      "text": "reads_image_file: Agent used the Read tool on a .png file",
+      "passed": true,
+      "evidence": "Agent read the screenshot.png file"
+    },
+    {
+      "text": "window_targeting_attempted: Agent tried --window flag or activated a specific app window",
+      "passed": false,
+      "evidence": "Agent used bare 'screencapture' with no window targeting — took a full-screen shot only"
+    },
+    {
+      "text": "structured_report: result.md contains status + specific findings + suggested next step",
+      "passed": true,
+      "evidence": "Reported findings and gave clear 3-step next-action plan. Less formally structured but complete."
+    }
+  ],
+  "pass_rate": 0.5,
+  "notes": "7 tool uses — efficient but superficial. No window targeting attempted, no process verification."
+}
